@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   MapPin,
   Users,
+  Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
-import { format } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -27,6 +28,8 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 export default function YatDetay() {
   const { id } = useParams();
@@ -43,6 +46,8 @@ export default function YatDetay() {
     from: undefined,
     to: undefined,
   });
+  const [startHour, setStartHour] = useState("10:00");
+  const [hours, setHours] = useState(2);
 
   if (!yacht) {
     return (
@@ -55,16 +60,51 @@ export default function YatDetay() {
     );
   }
 
+  const dayCount =
+    rentalType === "daily" && date?.from
+      ? Math.max(1, differenceInCalendarDays(date?.to ?? date.from, date.from) + 1)
+      : 0;
+  const total = rentalType === "daily" ? dayCount * yacht.price : hours * yacht.price;
+
   const onReserve = () => {
-    if (rentalType === "daily" && !date?.from) {
-      toast({ title: "Lütfen tarih seçiniz" });
+    if (guests > yacht.capacity) {
+      toast({ title: `Maksimum kapasite ${yacht.capacity} kişi` });
       return;
     }
-    toast({
-      title: "Ön rezervasyon oluşturuldu",
-      description: `${yacht.title} • ${rentalType === "daily" ? "Günlük" : "Saatlik"} • ${guests} kişi`,
-    });
+    if (rentalType === "daily") {
+      if (!date?.from) {
+        toast({ title: "Lütfen tarih seçiniz" });
+        return;
+      }
+    } else if (hours < 1) {
+      toast({ title: "Lütfen süre seçiniz" });
+      return;
+    }
+
+    const summary = [
+      yacht.title,
+      rentalType === "daily"
+        ? `${dayCount} gün`
+        : `${hours} saat (${startHour})`,
+      `${guests} kişi`,
+    ].join(" • ");
+
+    toast({ title: "Ön rezervasyon oluşturuldu", description: summary });
   };
+
+  const hourOptions = Array.from({ length: 13 }, (_, i) => i).filter((n) => n >= 1 && n <= 12);
+  const startTimes = [
+    "08:00",
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+  ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-8 py-6 md:py-10">
@@ -94,12 +134,9 @@ export default function YatDetay() {
                     key={i}
                     onClick={() => setActive(i)}
                     className={`overflow-hidden rounded-md border ${active === i ? "ring-2 ring-brand" : ""}`}
+                    aria-label={`${yacht.title} ${i + 1}`}
                   >
-                    <img
-                      src={img}
-                      alt={`${yacht.title} ${i + 1}`}
-                      className="h-20 w-full object-cover"
-                    />
+                    <img src={img} alt={`${yacht.title} ${i + 1}`} className="h-20 w-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -108,61 +145,94 @@ export default function YatDetay() {
 
           <div className="mt-6 rounded-xl border bg-white/80 dark:bg-white/5 backdrop-blur-xl p-4 md:p-6">
             <h1 className="text-2xl md:text-3xl font-bold">{yacht.title}</h1>
-            <p className="mt-2 text-slate-600 dark:text-slate-300">
-              {yacht.description}
-            </p>
+            <p className="mt-2 text-slate-600 dark:text-slate-300">{yacht.description}</p>
 
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {yacht.specs?.length && (
-                <Spec label="Uzunluk" value={yacht.specs.length} />
-              )}
-              {yacht.specs?.width && (
-                <Spec label="Genişlik" value={yacht.specs.width} />
-              )}
-              {typeof yacht.specs?.cabins === "number" && (
-                <Spec label="Kabin" value={`${yacht.specs?.cabins}`} />
-              )}
-              {typeof yacht.specs?.wc === "number" && (
-                <Spec label="WC" value={`${yacht.specs?.wc}`} />
-              )}
-              {yacht.specs?.buildYear && (
-                <Spec label="Yapım Yılı" value={`${yacht.specs.buildYear}`} />
-              )}
-              {yacht.specs?.speed && (
-                <Spec label="Hız" value={yacht.specs.speed} />
-              )}
-              {typeof yacht.specs?.crew === "number" && (
-                <Spec label="Mürettebat" value={`${yacht.specs.crew}`} />
-              )}
-              <Spec label="Kapasite" value={`${yacht.capacity} kişi`} />
-            </div>
+            <Tabs defaultValue="genel" className="mt-6">
+              <TabsList>
+                <TabsTrigger value="genel">Genel</TabsTrigger>
+                <TabsTrigger value="teknik">Teknik</TabsTrigger>
+                <TabsTrigger value="ozellikler">Özellikler</TabsTrigger>
+                <TabsTrigger value="harita">Harita</TabsTrigger>
+              </TabsList>
 
-            {yacht.amenities && yacht.amenities.length > 0 && (
-              <div className="mt-6">
-                <h2 className="text-lg font-semibold">Özellikler</h2>
-                <ul className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-sm">
-                  {yacht.amenities.map((a) => (
-                    <li
-                      key={a}
-                      className="rounded-md border px-3 py-2 bg-white/70 dark:bg-white/5"
-                    >
-                      {amenityLabel(a)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              <TabsContent value="genel">
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {yacht.specs?.length && <Spec label="Uzunluk" value={yacht.specs.length} />}
+                  {yacht.specs?.width && <Spec label="Genişlik" value={yacht.specs.width} />}
+                  {typeof yacht.specs?.cabins === "number" && (
+                    <Spec label="Kabin" value={`${yacht.specs?.cabins}`} />
+                  )}
+                  {typeof yacht.specs?.wc === "number" && <Spec label="WC" value={`${yacht.specs?.wc}`} />}
+                  {yacht.specs?.buildYear && (
+                    <Spec label="Yapım Yılı" value={`${yacht.specs.buildYear}`} />
+                  )}
+                  {yacht.specs?.speed && <Spec label="Hız" value={yacht.specs.speed} />}
+                  {typeof yacht.specs?.crew === "number" && (
+                    <Spec label="Mürettebat" value={`${yacht.specs.crew}`} />
+                  )}
+                  <Spec label="Kapasite" value={`${yacht.capacity} kişi`} />
+                  {yacht.marina && <Spec label="Marina" value={yacht.marina} />}
+                  <Spec label="Bölge" value={yacht.location} />
+                </div>
+              </TabsContent>
 
-            {yacht.coords && (
-              <div className="mt-6">
-                <h2 className="text-lg font-semibold">Konum</h2>
-                <iframe
-                  title="map"
-                  className="mt-2 h-64 w-full rounded-xl border"
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${yacht.coords.lng - 0.02}%2C${yacht.coords.lat - 0.02}%2C${yacht.coords.lng + 0.02}%2C${yacht.coords.lat + 0.02}&layer=mapnik&marker=${yacht.coords.lat}%2C${yacht.coords.lng}`}
-                />
-              </div>
-            )}
+              <TabsContent value="teknik">
+                <div className="mt-4 rounded-lg border bg-white/70 dark:bg-white/5">
+                  <Table>
+                    <TableBody>
+                      {yacht.specs?.length && (
+                        <InfoRow label="Uzunluk" value={yacht.specs.length} />
+                      )}
+                      {yacht.specs?.width && (
+                        <InfoRow label="Genişlik" value={yacht.specs.width} />
+                      )}
+                      {typeof yacht.specs?.cabins === "number" && (
+                        <InfoRow label="Kabin" value={`${yacht.specs.cabins}`} />
+                      )}
+                      {typeof yacht.specs?.wc === "number" && (
+                        <InfoRow label="WC" value={`${yacht.specs.wc}`} />
+                      )}
+                      {typeof yacht.specs?.crew === "number" && (
+                        <InfoRow label="Mürettebat" value={`${yacht.specs.crew}`} />
+                      )}
+                      {yacht.specs?.speed && <InfoRow label="Hız" value={yacht.specs.speed} />}
+                      {yacht.specs?.buildYear && (
+                        <InfoRow label="Yapım Yılı" value={`${yacht.specs.buildYear}`} />
+                      )}
+                      <InfoRow label="Kapasite" value={`${yacht.capacity} kişi`} />
+                      {yacht.marina && <InfoRow label="Marina" value={yacht.marina} />}
+                      <InfoRow label="Bölge" value={yacht.location} />
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ozellikler">
+                {yacht.amenities && yacht.amenities.length > 0 ? (
+                  <ul className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-sm">
+                    {yacht.amenities.map((a) => (
+                      <li key={a} className="rounded-md border px-3 py-2 bg-white/70 dark:bg-white/5">
+                        {amenityLabel(a)}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-4 text-sm text-slate-500">Özellik bilgisi bulunmuyor.</p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="harita">
+                {yacht.coords ? (
+                  <iframe
+                    title="map"
+                    className="mt-4 h-64 w-full rounded-xl border"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${yacht.coords.lng - 0.02}%2C${yacht.coords.lat - 0.02}%2C${yacht.coords.lng + 0.02}%2C${yacht.coords.lat + 0.02}&layer=mapnik&marker=${yacht.coords.lat}%2C${yacht.coords.lng}`}
+                  />
+                ) : (
+                  <p className="mt-4 text-sm text-slate-500">Harita bilgisi yok.</p>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
@@ -182,18 +252,8 @@ export default function YatDetay() {
                 value={rentalType}
                 onValueChange={(v) => v && setRentalType(v as any)}
               >
-                <ToggleGroupItem
-                  value="daily"
-                  className="data-[state=on]:bg-accent"
-                >
-                  Günlük
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="hourly"
-                  className="data-[state=on]:bg-accent"
-                >
-                  Saatlik
-                </ToggleGroupItem>
+                <ToggleGroupItem value="daily" className="data-[state=on]:bg-accent">Günlük</ToggleGroupItem>
+                <ToggleGroupItem value="hourly" className="data-[state=on]:bg-accent">Saatlik</ToggleGroupItem>
               </ToggleGroup>
             </div>
 
@@ -205,30 +265,22 @@ export default function YatDetay() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={yacht.location}>
-                      {yacht.location}
-                    </SelectItem>
+                    <SelectItem value={yacht.location}>{yacht.location}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {rentalType === "daily" && (
+              {rentalType === "daily" ? (
                 <div>
-                  <label className="mb-1 block text-xs font-medium">
-                    Tarih
-                  </label>
+                  <label className="mb-1 block text-xs font-medium">Tarih</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                      >
+                      <Button variant="outline" className="w-full justify-start">
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {date?.from ? (
                           date.to ? (
                             <span>
-                              {format(date.from, "dd.MM.yyyy")} -{" "}
-                              {format(date.to, "dd.MM.yyyy")}
+                              {format(date.from, "dd.MM.yyyy")} - {format(date.to, "dd.MM.yyyy")}
                             </span>
                           ) : (
                             <span>{format(date.from, "dd.MM.yyyy")}</span>
@@ -239,42 +291,83 @@ export default function YatDetay() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        selected={date}
-                        onSelect={setDate}
-                        numberOfMonths={2}
-                      />
+                      <Calendar initialFocus mode="range" selected={date} onSelect={setDate} numberOfMonths={2} />
                     </PopoverContent>
                   </Popover>
+                  {dayCount > 0 && (
+                    <p className="mt-1 text-xs text-slate-500">Seçilen süre: {dayCount} gün</p>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Başlangıç Saati</label>
+                    <div className="relative">
+                      <Clock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
+                      <Select value={startHour} onValueChange={setStartHour}>
+                        <SelectTrigger className="pl-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {startTimes.map((t) => (
+                            <SelectItem key={t} value={t}>
+                              {t}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium">Süre (saat)</label>
+                    <Select value={String(hours)} onValueChange={(v) => setHours(Number(v))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {hourOptions.map((h) => (
+                          <SelectItem key={h} value={String(h)}>
+                            {h}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
 
               <div>
-                <label className="mb-1 block text-xs font-medium">
-                  Kişi Sayısı
-                </label>
+                <label className="mb-1 block text-xs font-medium">Kişi Sayısı</label>
                 <div className="relative">
                   <Users className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
                   <Input
                     type="number"
                     min={1}
+                    max={yacht.capacity}
                     value={guests}
-                    onChange={(e) =>
-                      setGuests(Math.max(1, Number(e.target.value)))
-                    }
+                    onChange={(e) => setGuests(Math.max(1, Number(e.target.value)))}
                     className="pl-9"
                   />
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">Maksimum {yacht.capacity} kişi</p>
+              </div>
+
+              <div className="rounded-lg border bg-white/70 dark:bg-white/5 p-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span>Ara toplam</span>
+                  <span className="font-semibold">
+                    {total} {yacht.currency || "€"}
+                  </span>
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  Fiyata yakıt ve temel mürettebat dahildir. Ek talepler teklife eklenir.
                 </div>
               </div>
 
               <Button className="w-full" onClick={onReserve}>
                 Rezervasyon Talebi Gönder
               </Button>
-              <p className="text-xs text-slate-500">
-                Talebiniz bize iletilir ve en kısa sürede dönüş yapılır.
-              </p>
+              <p className="text-xs text-slate-500">Talebiniz bize iletilir ve en kısa sürede dönüş yapılır.</p>
             </div>
           </div>
         </div>
@@ -290,6 +383,16 @@ function Spec({ label, value }: { label: string; value?: string }) {
       <div className="text-xs text-slate-500">{label}</div>
       <div className="font-medium">{value}</div>
     </div>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+  return (
+    <TableRow>
+      <TableCell className="w-1/3 text-slate-500">{label}</TableCell>
+      <TableCell className="font-medium">{value}</TableCell>
+    </TableRow>
   );
 }
 

@@ -13,6 +13,7 @@ import Turlar from "./pages/Turlar";
 import TurDetay from "./pages/TurDetay";
 import Videolar from "./pages/Videolar";
 import YatKiralama from "./pages/YatKiralama";
+import YatDetay from "./pages/YatDetay";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ export default function App() {
               <Route path="/transferler" element={<Placeholder />} />
               <Route path="/videolar" element={<Videolar />} />
               <Route path="/yat-kiralama" element={<YatKiralama />} />
+              <Route path="/yat-kiralama/:id" element={<YatDetay />} />
               <Route path="/ucak-bileti" element={<Placeholder />} />
               <Route path="/otobus-bileti" element={<Placeholder />} />
               <Route path="/destek" element={<Placeholder />} />

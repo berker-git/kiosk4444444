@@ -691,7 +691,7 @@ export default function YatDetay() {
                   </DialogContent>
                 </Dialog>
 
-                <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+                <Dialog open={transferOpen} onOpenChange={(o)=>{setTransferOpen(o); if(o){ setDraftTransfer(selectedTransfer); } }}>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="flex items-center gap-2"><Car className="h-4 w-4" /> Transfer Hizmeti</Button>
                   </DialogTrigger>

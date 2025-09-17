@@ -310,6 +310,25 @@ export default function YatDetay() {
                 alt={yacht.title}
                 className="h-full w-full object-cover"
               />
+              <div className="absolute inset-0 flex items-end justify-end p-3">
+                <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" variant="secondary">Video</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                      <DialogTitle>Tanıtım Videosu</DialogTitle>
+                    </DialogHeader>
+                    {(yacht as any).video ? (
+                      <video controls className="w-full rounded-md">
+                        <source src={(yacht as any).video} />
+                      </video>
+                    ) : (
+                      <div className="text-sm text-slate-500">Bu tekne için video henüz eklenmedi.</div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             {yacht.images && yacht.images.length > 1 && (
               <div className="grid grid-cols-4 gap-2 p-2">

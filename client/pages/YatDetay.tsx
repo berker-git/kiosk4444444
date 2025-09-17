@@ -562,40 +562,56 @@ export default function YatDetay() {
                   {dayCount > 0 && <p className="mt-1 text-xs text-slate-500">Seçilen süre: {dayCount} gün</p>}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3">
                   <div>
-                    <label className="mb-1 block text-xs font-medium">Başlangıç</label>
-                    <div className="relative">
-                      <Clock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
-                      <Select value={startHour} onValueChange={setStartHour}>
-                        <SelectTrigger className="pl-9">
+                    <label className="mb-1 block text-xs font-medium">Tarih</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {hourlyDate ? <span>{format(hourlyDate, "dd.MM.yyyy")}</span> : <span>Tarih seçiniz</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar mode="single" selected={hourlyDate} onSelect={setHourlyDate} />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium">Başlangıç</label>
+                      <div className="relative">
+                        <Clock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60" />
+                        <Select value={startHour} onValueChange={setStartHour}>
+                          <SelectTrigger className="pl-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {startTimes.map((t) => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium">Süre (saat)</label>
+                      <Select value={String(hours)} onValueChange={(v) => setHours(Number(v))}>
+                        <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {startTimes.map((t) => (
-                            <SelectItem key={t} value={t}>
-                              {t}
+                          {hourOptions.map((h) => (
+                            <SelectItem key={h} value={String(h)}>
+                              {h}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      <p className="mt-1 text-[11px] text-slate-500">Minimum {minHourly} saat</p>
                     </div>
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium">Süre (saat)</label>
-                    <Select value={String(hours)} onValueChange={(v) => setHours(Number(v))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {hourOptions.map((h) => (
-                          <SelectItem key={h} value={String(h)}>
-                            {h}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="mt-1 text-[11px] text-slate-500">Minimum {minHourly} saat</p>
                   </div>
                 </div>
               )}

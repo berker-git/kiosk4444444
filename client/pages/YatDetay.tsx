@@ -682,7 +682,11 @@ export default function YatDetay() {
                     </Tabs>
                     <div className="mt-3 text-sm flex items-center justify-between">
                       <div>Ek hizmetler tutarı</div>
-                      <div className="font-semibold">{addonsSubtotal} {yacht.currency || "€"}</div>
+                      <div className="font-semibold">{Object.entries(draftAddons).reduce((s,[id,q])=>{const it=ADDON_CATEGORIES.flatMap(c=>c.items).find(i=>i.id===id);return s+(it?it.price*q:0);},0)} {yacht.currency || "€"}</div>
+                    </div>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <Button variant="outline" onClick={()=>setAddonsOpen(false)}>İptal</Button>
+                      <Button onClick={()=>{setAddons(draftAddons); setAddonsOpen(false);}}>Onayla</Button>
                     </div>
                   </DialogContent>
                 </Dialog>

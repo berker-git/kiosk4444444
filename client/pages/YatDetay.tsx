@@ -303,7 +303,7 @@ export default function YatDetay() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {/* Left: Gallery + Details */}
         <div className="md:col-span-3">
-          <div className="overflow-hidden rounded-xl border bg-white/80 dark:bg-white/5 backdrop-blur-xl">
+          <div className="overflow-hidden rounded-xl border bg-white/80 dark:bg-white/5 backdrop-blur-xl relative">
             <div className="aspect-[16/10] w-full overflow-hidden">
               <img
                 src={(yacht.images && yacht.images[active]) || yacht.image}

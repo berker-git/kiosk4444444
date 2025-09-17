@@ -169,15 +169,31 @@ export default function YatDetay() {
   const [date, setDate] = useState<DateRange | undefined>({ from: undefined, to: undefined });
   const [startHour, setStartHour] = useState("10:00");
   const [hours, setHours] = useState(2);
+  const [hourlyDate, setHourlyDate] = useState<Date | undefined>(undefined);
   const [embark, setEmbark] = useState<string | undefined>(undefined);
 
   // Add-ons state: key -> qty
   const [addons, setAddons] = useState<Record<string, number>>({});
   const [addonsOpen, setAddonsOpen] = useState(false);
+  const [draftAddons, setDraftAddons] = useState<Record<string, number>>({});
 
   // Transfer state
   const [transferOpen, setTransferOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<string | null>(null);
+  const [draftTransfer, setDraftTransfer] = useState<string | null>(null);
+
+  // Video modal
+  const [videoOpen, setVideoOpen] = useState(false);
+
+  // Booking flow modal
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingStep, setBookingStep] = useState<1 | 2 | 3>(1);
+  const [bookingMode, setBookingMode] = useState<"pre" | "pay" | null>(null);
+
+  // Booking form fields
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formPhone, setFormPhone] = useState("");
 
   // Reviews state (client-side)
   const [reviews, setReviews] = useState<{ name: string; text: string; rating: number }[]>([]);

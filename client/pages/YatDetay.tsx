@@ -119,7 +119,7 @@ const TRANSFER_PRICING: Record<string, { id: string; label: string; price: numbe
 const ADDON_CATEGORIES: {
   id: string;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   items: { id: string; name: string; price: number; emoji?: string }[];
 }[] = [
   {

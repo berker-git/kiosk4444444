@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { yachts } from "@/components/yat/data";
 import type { Yacht } from "@/components/yat/types";

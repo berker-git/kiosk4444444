@@ -267,9 +267,9 @@ export default function YatDetay() {
     });
   };
 
-  const addOnQty = (id: string) => addons[id] || 0;
+  const addOnQty = (id: string) => draftAddons[id] || 0;
   const setAddOnQty = (id: string, qty: number) =>
-    setAddons((prev) => {
+    setDraftAddons((prev) => {
       const next = { ...prev };
       if (qty <= 0) delete next[id];
       else next[id] = qty;

@@ -641,7 +641,7 @@ export default function YatDetay() {
 
               {/* Add-ons & Transfer Buttons */}
               <div className="flex flex-wrap gap-2">
-                <Dialog open={addonsOpen} onOpenChange={setAddonsOpen}>
+                <Dialog open={addonsOpen} onOpenChange={(o)=>{setAddonsOpen(o); if(o){ setDraftAddons(addons); } }}>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="flex items-center gap-2"><UtensilsCrossed className="h-4 w-4" /> Yemek ve Hizmet Seçenekleri</Button>
                   </DialogTrigger>

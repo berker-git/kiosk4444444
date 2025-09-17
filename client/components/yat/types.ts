@@ -8,6 +8,7 @@ export type Yacht = {
   capacity: number;
   image: string; // primary image
   images?: string[]; // gallery
+  video?: string; // optional promo video url
   specs?: {
     length?: string;
     width?: string;
